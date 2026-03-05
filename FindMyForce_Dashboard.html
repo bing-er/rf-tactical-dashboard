@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIND MY FORCE — Tactical Platform ID System</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0f;
+    --panel: #0a1520;
+    --panel2: #0d1b2a;
+    --border: #1a3a5c;
+    --border2: #0f2840;
+    --green: #00ff88;
+    --green-dim: #00a855;
+    --green-bg: rgba(0,255,136,0.06);
+    --yellow: #ffc107;
+    --yellow-dim: #c49000;
+    --yellow-bg: rgba(255,193,7,0.06);
+    --red: #ff3b5c;
+    --red-dim: #c0002a;
+    --red-bg: rgba(255,59,92,0.06);
+    --blue: #00b4ff;
+    --blue-dim: #0078b0;
+    --text: #c8dcea;
+    --text-dim: #4a7090;
+    --text-faint: #1e3a50;
+    --mono: 'Share Tech Mono', monospace;
+    --display: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    height: 100vh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: 52px 1fr;
+    grid-template-columns: 320px 1fr 300px;
+    grid-template-areas:
+      "header header header"
+      "left   map    right";
+  }
+
+  /* ─── SCANLINE OVERLAY ─── */
+  body::after {
+    content:'';
+    position:fixed; inset:0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events:none;
+    z-index:9999;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    grid-area: header;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 24px;
+    position: relative;
+  }
+  .logo {
+    font-family: var(--display);
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: var(--green);
+    text-transform: uppercase;
+  }
+  .logo span { color: var(--text-dim); }
+  .header-divider { width: 1px; height: 28px; background: var(--border); }
+  .header-stat {
+    display:flex; flex-direction:column;
+    font-family: var(--mono); font-size: 10px;
+  }
+  .header-stat-label { color: var(--text-dim); font-size:9px; letter-spacing:1px; }
+  .header-stat-value { color: var(--text); font-size:13px; }
+  .header-stat-value.green { color: var(--green); }
+  .header-stat-value.yellow { color: var(--yellow); }
+  .header-stat-value.red { color: var(--red); }
+
+  .header-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .op-badge {
+    font-family: var(--mono); font-size:10px;
+    background: rgba(0,180,255,0.1);
+    border: 1px solid var(--blue-dim);
+    color: var(--blue);
+    padding: 3px 10px;
+    letter-spacing: 2px;
+  }
+  .clock {
+    font-family: var(--mono); font-size: 13px;
+    color: var(--text-dim);
+    min-width: 70px;
+  }
+  .rec-dot {
+    width:8px; height:8px; border-radius:50%;
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red);
+    animation: pulse-red 1.5s infinite;
+  }
+  @keyframes pulse-red {
+    0%,100% { opacity:1; }
+    50% { opacity:0.3; }
+  }
+
+  /* ─── LEFT PANEL ─── */
+  .panel-left {
+    grid-area: left;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border2);
+    font-family: var(--display);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .panel-header-dot {
+    width:6px; height:6px; border-radius:50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+  .platform-list {
+    flex:1; overflow-y:auto;
+    padding: 8px 0;
+  }
+  .platform-list::-webkit-scrollbar { width:3px; }
+  .platform-list::-webkit-scrollbar-track { background: transparent; }
+  .platform-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .platform-item {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border2);
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .platform-item:hover { background: rgba(0,180,255,0.04); }
+  .platform-item.selected { background: rgba(0,180,255,0.08); border-left: 2px solid var(--blue); }
+  .platform-item::before {
+    content:'';
+    position:absolute; left:0; top:0; bottom:0;
+    width:3px;
+  }
+  .platform-item.friendly::before { background: var(--green); }
+  .platform-item.unknown::before { background: var(--red); }
+  .platform-item.unverified::before { background: var(--yellow); }
+
+  .pi-top { display:flex; align-items:center; gap:8px; }
+  .pi-icon { font-size:14px; }
+  .pi-id {
+    font-family: var(--mono); font-size:11px;
+    color: var(--text); flex:1;
+  }
+  .pi-status {
+    font-family: var(--display); font-size:10px;
+    font-weight:700; letter-spacing:2px;
+    padding: 1px 6px;
+  }
+  .pi-status.friendly { color: var(--green); background: var(--green-bg); }
+  .pi-status.unknown { color: var(--red); background: var(--red-bg); }
+  .pi-status.unverified { color: var(--yellow); background: var(--yellow-bg); }
+
+  .pi-bottom { display:flex; gap:16px; }
+  .pi-meta {
+    font-family: var(--mono); font-size:9px; color: var(--text-dim);
+  }
+  .pi-meta span { color: var(--text); }
+
+  .signal-bar {
+    display:flex; gap:2px; align-items:flex-end; height:12px;
+  }
+  .signal-bar div {
+    width:3px;
+    background: var(--border);
+    border-radius:1px;
+  }
+  .signal-bar div.active.friendly { background: var(--green); }
+  .signal-bar div.active.unknown { background: var(--red); }
+  .signal-bar div.active.unverified { background: var(--yellow); }
+
+  /* ─── MAP AREA ─── */
+  .map-area {
+    grid-area: map;
+    position: relative;
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  /* Tactical grid */
+  .tactical-grid {
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(26,58,92,0.3) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,58,92,0.3) 1px, transparent 1px),
+      linear-gradient(rgba(26,58,92,0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,58,92,0.1) 1px, transparent 1px);
+    background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+  }
+
+  /* Range rings */
+  .range-rings {
+    position:absolute;
+    top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    pointer-events:none;
+  }
+  .ring {
+    position:absolute;
+    border: 1px solid rgba(0,180,255,0.1);
+    border-radius:50%;
+    transform: translate(-50%,-50%);
+  }
+  .ring-label {
+    position:absolute;
+    font-family: var(--mono); font-size:9px;
+    color: var(--text-faint);
+    transform: translate(-50%,-50%);
+    pointer-events:none;
+  }
+
+  /* Compass */
+  .compass {
+    position:absolute; top:16px; right:16px;
+    width:60px; height:60px;
+    border: 1px solid var(--border);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background: rgba(10,21,32,0.8);
+    font-family: var(--mono);
+  }
+  .compass-inner { position:relative; width:40px; height:40px; }
+  .compass-n, .compass-s, .compass-e, .compass-w {
+    position:absolute; font-size:9px;
+    color: var(--text-dim);
+  }
+  .compass-n { top:-2px; left:50%; transform:translateX(-50%); color: var(--red); }
+  .compass-s { bottom:-2px; left:50%; transform:translateX(-50%); }
+  .compass-e { right:-6px; top:50%; transform:translateY(-50%); }
+  .compass-w { left:-6px; top:50%; transform:translateY(-50%); }
+  .compass-dot {
+    position:absolute; top:50%; left:50%;
+    width:4px; height:4px; border-radius:50%;
+    background: var(--blue);
+    transform: translate(-50%,-50%);
+    box-shadow: 0 0 8px var(--blue);
+  }
+
+  /* Map label */
+  .map-label {
+    position:absolute; bottom:12px; left:16px;
+    font-family: var(--mono); font-size:10px;
+    color: var(--text-faint);
+  }
+
+  /* Platform nodes on map */
+  .map-node {
+    position:absolute;
+    transform: translate(-50%,-50%);
+    cursor: pointer;
+    z-index:10;
+  }
+  .node-ping {
+    position:absolute; top:50%; left:50%;
+    width:32px; height:32px;
+    border-radius:50%;
+    transform: translate(-50%,-50%);
+    animation: ping 2.5s infinite;
+  }
+  .node-core {
+    position:relative;
+    width:18px; height:18px;
+    border-radius:50%;
+    border: 2px solid;
+    display:flex; align-items:center; justify-content:center;
+    font-size:9px;
+    z-index:2;
+    transition: transform 0.2s;
+  }
+  .map-node:hover .node-core { transform: scale(1.3); }
+
+  .map-node.friendly .node-ping { background: radial-gradient(circle, rgba(0,255,136,0.3) 0%, transparent 70%); }
+  .map-node.friendly .node-core { background: rgba(0,255,136,0.15); border-color: var(--green); box-shadow: 0 0 12px rgba(0,255,136,0.4); }
+
+  .map-node.unknown .node-ping { background: radial-gradient(circle, rgba(255,59,92,0.3) 0%, transparent 70%); animation-duration: 1.2s; }
+  .map-node.unknown .node-core { background: rgba(255,59,92,0.15); border-color: var(--red); box-shadow: 0 0 12px rgba(255,59,92,0.5); }
+
+  .map-node.unverified .node-ping { background: radial-gradient(circle, rgba(255,193,7,0.3) 0%, transparent 70%); animation-duration: 2s; }
+  .map-node.unverified .node-core { background: rgba(255,193,7,0.15); border-color: var(--yellow); box-shadow: 0 0 12px rgba(255,193,7,0.4); }
+
+  @keyframes ping {
+    0% { transform: translate(-50%,-50%) scale(0.5); opacity:0.8; }
+    100% { transform: translate(-50%,-50%) scale(2.5); opacity:0; }
+  }
+
+  .node-label {
+    position:absolute; top:22px; left:50%;
+    transform: translateX(-50%);
+    font-family: var(--mono); font-size:9px;
+    white-space:nowrap;
+    background: rgba(5,10,15,0.85);
+    padding: 1px 5px;
+    pointer-events:none;
+  }
+  .map-node.friendly .node-label { color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
+  .map-node.unknown .node-label { color: var(--red); border: 1px solid rgba(255,59,92,0.2); }
+  .map-node.unverified .node-label { color: var(--yellow); border: 1px solid rgba(255,193,7,0.2); }
+
+  /* Scan sweep */
+  .scan-sweep {
+    position:absolute; top:50%; left:50%;
+    width:300px; height:300px;
+    transform-origin: 0 0;
+    animation: sweep 4s linear infinite;
+    pointer-events:none;
+    background: conic-gradient(from 0deg, transparent 0deg, rgba(0,180,255,0.08) 20deg, transparent 20deg);
+    border-radius:50%;
+    transform: translate(-50%, -50%);
+  }
+  @keyframes sweep {
+    from { transform: translate(-50%,-50%) rotate(0deg); }
+    to   { transform: translate(-50%,-50%) rotate(360deg); }
+  }
+
+  /* Operator node */
+  .operator-node {
+    position:absolute; top:50%; left:50%;
+    transform: translate(-50%,-50%);
+    z-index:20;
+  }
+  .op-core {
+    width:24px; height:24px; border-radius:50%;
+    background: rgba(0,180,255,0.2);
+    border: 2px solid var(--blue);
+    box-shadow: 0 0 20px rgba(0,180,255,0.5);
+    display:flex; align-items:center; justify-content:center;
+    font-size:10px;
+  }
+  .op-ring {
+    position:absolute; top:50%; left:50%;
+    width:50px; height:50px; border-radius:50%;
+    border: 1px solid rgba(0,180,255,0.2);
+    transform: translate(-50%,-50%);
+    animation: op-pulse 2s infinite;
+  }
+  @keyframes op-pulse {
+    0%,100% { transform: translate(-50%,-50%) scale(1); opacity:0.5; }
+    50% { transform: translate(-50%,-50%) scale(1.3); opacity:0.1; }
+  }
+
+  /* ─── RIGHT PANEL ─── */
+  .panel-right {
+    grid-area: right;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  .detail-box {
+    flex:1;
+    padding: 16px;
+    border-bottom: 1px solid var(--border2);
+    overflow-y: auto;
+  }
+  .detail-box::-webkit-scrollbar { width:3px; }
+  .detail-box::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .detail-title {
+    font-family: var(--mono); font-size:11px;
+    color: var(--text-dim); letter-spacing:2px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .detail-id {
+    font-family: var(--display); font-size:24px; font-weight:700;
+    margin-bottom: 4px;
+  }
+  .detail-id.friendly { color: var(--green); }
+  .detail-id.unknown { color: var(--red); }
+  .detail-id.unverified { color: var(--yellow); }
+
+  .detail-type {
+    font-family: var(--mono); font-size:11px; color: var(--text-dim);
+    margin-bottom:16px;
+  }
+
+  .detail-row {
+    display:flex; justify-content:space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border2);
+  }
+  .detail-row:last-child { border-bottom:none; }
+  .dr-key { font-family:var(--mono); font-size:10px; color: var(--text-dim); }
+  .dr-val { font-family:var(--mono); font-size:10px; color: var(--text); }
+  .dr-val.green { color: var(--green); }
+  .dr-val.red { color: var(--red); }
+  .dr-val.yellow { color: var(--yellow); }
+
+  .rf-display {
+    margin-top:14px;
+    padding:10px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+  }
+  .rf-title { font-family:var(--mono); font-size:9px; color:var(--text-dim); margin-bottom:8px; letter-spacing:2px; }
+  .rf-bars {
+    display:flex; gap:3px; align-items:flex-end; height:32px;
+  }
+  .rf-bar {
+    flex:1;
+    background: var(--border2);
+    border-radius:1px;
+    transition: height 0.5s;
+    min-height:2px;
+  }
+  .rf-bar.friendly { background: var(--green); opacity:0.7; }
+  .rf-bar.unknown { background: var(--red); opacity:0.7; }
+  .rf-bar.unverified { background: var(--yellow); opacity:0.7; }
+
+  .action-btns {
+    display:flex; flex-direction:column; gap:6px;
+    margin-top:14px;
+  }
+  .btn {
+    padding: 7px 12px;
+    font-family: var(--display); font-size:11px; font-weight:600;
+    letter-spacing:2px; text-transform:uppercase;
+    border:none; cursor:pointer;
+    transition: all 0.15s;
+  }
+  .btn-verify {
+    background: rgba(0,255,136,0.1); color: var(--green);
+    border: 1px solid var(--green-dim);
+  }
+  .btn-verify:hover { background: rgba(0,255,136,0.2); }
+  .btn-flag {
+    background: rgba(255,59,92,0.1); color: var(--red);
+    border: 1px solid var(--red-dim);
+  }
+  .btn-flag:hover { background: rgba(255,59,92,0.2); }
+  .btn-track {
+    background: rgba(0,180,255,0.1); color: var(--blue);
+    border: 1px solid var(--blue-dim);
+  }
+  .btn-track:hover { background: rgba(0,180,255,0.2); }
+
+  /* Activity log */
+  .activity-log {
+    height: 180px;
+    padding: 10px 14px;
+    overflow-y:auto;
+  }
+  .activity-log::-webkit-scrollbar { width:3px; }
+  .activity-log::-webkit-scrollbar-thumb { background: var(--border); }
+  .log-entry {
+    font-family: var(--mono); font-size:9px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border2);
+    display:flex; gap:8px;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateX(8px); } to { opacity:1; transform:none; } }
+  .log-time { color: var(--text-faint); min-width:42px; }
+  .log-msg { color: var(--text-dim); flex:1; }
+  .log-msg.green { color: var(--green); }
+  .log-msg.red { color: var(--red); }
+  .log-msg.yellow { color: var(--yellow); }
+  .log-msg.blue { color: var(--blue); }
+
+  /* ─── ALERTS ─── */
+  .alert-bar {
+    position:absolute; top:8px; left:50%; transform:translateX(-50%);
+    background: rgba(255,59,92,0.15);
+    border: 1px solid var(--red-dim);
+    padding: 6px 20px;
+    font-family: var(--mono); font-size:11px; color: var(--red);
+    letter-spacing:2px;
+    z-index:50;
+    display:none;
+    animation: fadeIn 0.3s ease;
+  }
+  .alert-bar.show { display:block; }
+
+  /* ─── ADD PLATFORM MODAL ─── */
+  .modal-overlay {
+    position:fixed; inset:0;
+    background: rgba(0,0,0,0.7);
+    z-index:100;
+    display:none;
+    align-items:center; justify-content:center;
+  }
+  .modal-overlay.show { display:flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 28px;
+    width: 380px;
+  }
+  .modal-title {
+    font-family: var(--display); font-size:20px; font-weight:700;
+    letter-spacing:3px; color: var(--green); margin-bottom:20px;
+  }
+  .modal-field { margin-bottom:14px; }
+  .modal-label { font-family:var(--mono); font-size:10px; color:var(--text-dim); letter-spacing:2px; margin-bottom:5px; }
+  .modal-input, .modal-select {
+    width:100%; padding:8px 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--mono); font-size:12px;
+    outline:none;
+  }
+  .modal-input:focus, .modal-select:focus { border-color: var(--blue); }
+  .modal-btns { display:flex; gap:10px; margin-top:20px; }
+  .modal-btns .btn { flex:1; padding:10px; font-size:12px; }
+
+  /* ─── BOTTOM BAR ─── */
+  .bottom-bar {
+    grid-column: 1/-1;
+    /* not in grid but floated */
+    position:absolute; bottom:0; left:320px; right:300px;
+    background: rgba(10,21,32,0.9);
+    border-top: 1px solid var(--border2);
+    padding: 6px 16px;
+    display:flex; gap:24px; align-items:center;
+    font-family: var(--mono); font-size:9px; color: var(--text-faint);
+    z-index:10;
+  }
+  .bb-item { display:flex; gap:6px; align-items:center; }
+  .bb-dot { width:6px; height:6px; border-radius:50%; }
+  .bb-label { color: var(--text-dim); }
+  .add-btn {
+    margin-left:auto;
+    padding: 5px 14px;
+    background: rgba(0,255,136,0.1);
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+    font-family: var(--display); font-size:11px; font-weight:600;
+    letter-spacing:2px; cursor:pointer; text-transform:uppercase;
+    transition: all 0.15s;
+  }
+  .add-btn:hover { background: rgba(0,255,136,0.2); }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">FIND<span>/</span>MY<span>/</span>FORCE</div>
+  <div class="header-divider"></div>
+  <div class="header-stat">
+    <div class="header-stat-label">FRIENDLY</div>
+    <div class="header-stat-value green" id="cnt-friendly">0</div>
+  </div>
+  <div class="header-stat">
+    <div class="header-stat-label">UNVERIFIED</div>
+    <div class="header-stat-value yellow" id="cnt-unverified">0</div>
+  </div>
+  <div class="header-stat">
+    <div class="header-stat-label">UNKNOWN</div>
+    <div class="header-stat-value red" id="cnt-unknown">0</div>
+  </div>
+  <div class="header-divider"></div>
+  <div class="header-stat">
+    <div class="header-stat-label">SCAN RANGE</div>
+    <div class="header-stat-value">2.4 km</div>
+  </div>
+  <div class="header-stat">
+    <div class="header-stat-label">RF ACTIVE</div>
+    <div class="header-stat-value green">NOMINAL</div>
+  </div>
+  <div class="header-right">
+    <div class="op-badge">OP ARCTIC SHIELD</div>
+    <div class="clock" id="clock">00:00:00</div>
+    <div class="rec-dot"></div>
+  </div>
+</header>
+
+<!-- LEFT PANEL -->
+<div class="panel-left">
+  <div class="panel-header">
+    <div class="panel-header-dot"></div>
+    Platform Registry
+  </div>
+  <div class="platform-list" id="platform-list"></div>
+</div>
+
+<!-- MAP -->
+<div class="map-area" id="map-area">
+  <div class="tactical-grid"></div>
+  <div class="scan-sweep"></div>
+  <div class="range-rings" id="range-rings"></div>
+
+  <!-- Operator node -->
+  <div class="operator-node">
+    <div class="op-ring"></div>
+    <div class="op-core">🎖</div>
+  </div>
+
+  <!-- Map label -->
+  <div class="map-label" id="coords-label">LAT 68.3°N  LON 133.5°W  ALT 215m  |  GRID 09UWA</div>
+
+  <!-- Alert -->
+  <div class="alert-bar" id="alert-bar">⚠ UNKNOWN PLATFORM DETECTED — CONFIRM IDENTITY</div>
+
+  <!-- Compass -->
+  <div class="compass">
+    <div class="compass-inner">
+      <div class="compass-n">N</div>
+      <div class="compass-s">S</div>
+      <div class="compass-e">E</div>
+      <div class="compass-w">W</div>
+      <div class="compass-dot"></div>
+    </div>
+  </div>
+
+  <!-- Platform nodes rendered by JS -->
+  <div id="map-nodes"></div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <div class="bb-item"><div class="bb-dot" style="background:var(--green)"></div><div class="bb-label">FRIENDLY</div></div>
+    <div class="bb-item"><div class="bb-dot" style="background:var(--yellow)"></div><div class="bb-label">UNVERIFIED</div></div>
+    <div class="bb-item"><div class="bb-dot" style="background:var(--red)"></div><div class="bb-label">UNKNOWN</div></div>
+    <div class="bb-item"><div class="bb-dot" style="background:var(--blue)"></div><div class="bb-label">OPERATOR</div></div>
+    <button class="add-btn" onclick="openModal()">+ Register Platform</button>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="panel-right">
+  <div class="panel-header">
+    <div class="panel-header-dot"></div>
+    Platform Detail
+  </div>
+  <div class="detail-box" id="detail-box">
+    <div class="detail-title">Select a platform</div>
+    <p style="font-family:var(--mono);font-size:10px;color:var(--text-faint);line-height:1.6;">
+      Click any platform in the registry or on the map to view its digital identity, RF fingerprint, and location history.
+    </p>
+  </div>
+  <div class="panel-header">
+    <div class="panel-header-dot"></div>
+    Activity Log
+  </div>
+  <div class="activity-log" id="activity-log"></div>
+</div>
+
+<!-- ADD PLATFORM MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">REGISTER PLATFORM</div>
+    <div class="modal-field">
+      <div class="modal-label">PLATFORM ID</div>
+      <input class="modal-input" id="m-id" placeholder="e.g. UAV-ALPHA-07" />
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">TYPE</div>
+      <select class="modal-select" id="m-type">
+        <option>Drone / UAV</option>
+        <option>Ground Robot</option>
+        <option>Sensor Node</option>
+        <option>Vessel</option>
+        <option>Unknown Device</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">TRUST STATUS</div>
+      <select class="modal-select" id="m-status">
+        <option value="friendly">Friendly</option>
+        <option value="unverified">Unverified</option>
+        <option value="unknown">Unknown / Threat</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">RF FREQUENCY (MHz)</div>
+      <input class="modal-input" id="m-freq" placeholder="e.g. 2437" type="number" />
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-verify" onclick="addPlatform()">REGISTER</button>
+      <button class="btn btn-flag" onclick="closeModal()">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+const TYPES = { 'Drone / UAV':'🚁', 'Ground Robot':'🤖', 'Sensor Node':'📡', 'Vessel':'⛵', 'Unknown Device':'❓' };
+
+let platforms = [
+  { id:'CAF-RAVEN-01', type:'Drone / UAV', status:'friendly', freq:2437, rssi:-62, lat:42, lon:30, lastSeen:0, sig:[7,9,8,10,6,9,11,8,7,10,9,8] },
+  { id:'CAF-TALON-03', type:'Ground Robot', status:'friendly', freq:5180, rssi:-70, lat:58, lon:62, lastSeen:0, sig:[5,8,6,9,7,10,8,6,9,7,8,6] },
+  { id:'SEN-NODE-7', type:'Sensor Node', status:'friendly', freq:915, rssi:-80, lat:35, lon:75, lastSeen:0, sig:[4,6,5,8,4,7,5,6,4,7,5,4] },
+  { id:'DEV-UNK-442', type:'Unknown Device', status:'unknown', freq:2462, rssi:-55, lat:72, lon:40, lastSeen:0, sig:[3,11,2,10,8,3,11,2,9,4,11,3] },
+  { id:'CAF-WOLF-02', type:'Ground Robot', status:'unverified', freq:5500, rssi:-75, lat:28, lon:55, lastSeen:0, sig:[6,7,6,8,5,8,6,7,6,8,7,5] },
+  { id:'UAV-9B-XXT', type:'Drone / UAV', status:'unverified', freq:2412, rssi:-68, lat:62, lon:22, lastSeen:0, sig:[8,5,9,4,8,5,9,4,8,5,9,4] },
+];
+
+let selectedId = null;
+let logEntries = [];
+let tick = 0;
+
+// ── CLOCK ─────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── RANGE RINGS ───────────────────────────────────────────────────────
+function drawRings() {
+  const c = document.getElementById('range-rings');
+  const sizes = [120,240,360];
+  const labels = ['0.8km','1.6km','2.4km'];
+  c.innerHTML = sizes.map((s,i) => `
+    <div class="ring" style="width:${s*2}px;height:${s*2}px;"></div>
+    <div class="ring-label" style="top:${-s}px;left:30px;">${labels[i]}</div>
+  `).join('');
+}
+drawRings();
+
+// ── SIGNAL BARS ────────────────────────────────────────────────────────
+function sigBars(p, count=4) {
+  const strength = Math.round((-p.rssi - 50) / 40 * count);
+  const active = Math.max(1, Math.min(count, strength));
+  return Array.from({length:count}, (_,i) =>
+    `<div style="height:${(i+1)*3+2}px;" class="${i < active ? 'active '+p.status : ''}"></div>`
+  ).join('');
+}
+
+// ── RENDER LEFT LIST ──────────────────────────────────────────────────
+function renderList() {
+  const list = document.getElementById('platform-list');
+  list.innerHTML = platforms.map(p => {
+    const icon = TYPES[p.type] || '❓';
+    const ago = tick - p.lastSeen;
+    const agoStr = ago < 5 ? 'LIVE' : ago < 60 ? `${ago}s ago` : `${Math.floor(ago/60)}m ago`;
+    return `
+    <div class="platform-item ${p.status} ${selectedId===p.id?'selected':''}" onclick="selectPlatform('${p.id}')">
+      <div class="pi-top">
+        <span class="pi-icon">${icon}</span>
+        <span class="pi-id">${p.id}</span>
+        <span class="pi-status ${p.status}">${p.status.toUpperCase()}</span>
+      </div>
+      <div class="pi-bottom">
+        <span class="pi-meta">RSSI <span>${p.rssi} dBm</span></span>
+        <span class="pi-meta">FREQ <span>${p.freq} MHz</span></span>
+        <span class="pi-meta"><span>${agoStr}</span></span>
+        <div class="signal-bar">${sigBars(p)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER MAP NODES ───────────────────────────────────────────────────
+function getMapArea() {
+  const m = document.getElementById('map-area');
+  return { w: m.clientWidth, h: m.clientHeight };
+}
+
+function renderMapNodes() {
+  const { w, h } = getMapArea();
+  const nodes = document.getElementById('map-nodes');
+  nodes.innerHTML = platforms.map(p => {
+    const icon = TYPES[p.type] || '❓';
+    // positions are percentages offset from center
+    const x = w/2 + (p.lon - 50) * 3.5;
+    const y = h/2 + (p.lat - 50) * 3.5;
+    return `
+    <div class="map-node ${p.status}" style="left:${x}px;top:${y}px" onclick="selectPlatform('${p.id}')">
+      <div class="node-ping"></div>
+      <div class="node-core">${icon}</div>
+      <div class="node-label">${p.id}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER DETAIL ──────────────────────────────────────────────────────
+function renderDetail(p) {
+  if (!p) {
+    document.getElementById('detail-box').innerHTML = `
+      <div class="detail-title">Select a platform</div>
+      <p style="font-family:var(--mono);font-size:10px;color:var(--text-faint);line-height:1.6;">
+        Click any platform in the registry or on the map.
+      </p>`;
+    return;
+  }
+  const icon = TYPES[p.type] || '❓';
+  const statusColor = p.status === 'friendly' ? 'green' : p.status === 'unknown' ? 'red' : 'yellow';
+  const rfBars = p.sig.map(v =>
+    `<div class="rf-bar ${p.status}" style="height:${v/11*32}px"></div>`
+  ).join('');
+  const ago = tick - p.lastSeen;
+  const agoStr = ago < 5 ? 'LIVE' : ago < 60 ? `${ago}s ago` : `${Math.floor(ago/60)}m ago`;
+  const hashStr = p.id.split('').reduce((a,c)=>((a<<5)-a)+c.charCodeAt(0),0).toString(16).toUpperCase().slice(-8);
+
+  document.getElementById('detail-box').innerHTML = `
+    <div class="detail-title">Platform Detail</div>
+    <div class="detail-id ${p.status}">${icon} ${p.id}</div>
+    <div class="detail-type">${p.type}</div>
+
+    <div class="detail-row"><span class="dr-key">STATUS</span><span class="dr-val ${statusColor}">${p.status.toUpperCase()}</span></div>
+    <div class="detail-row"><span class="dr-key">FREQUENCY</span><span class="dr-val">${p.freq} MHz</span></div>
+    <div class="detail-row"><span class="dr-key">RSSI</span><span class="dr-val">${p.rssi} dBm</span></div>
+    <div class="detail-row"><span class="dr-key">LAST SEEN</span><span class="dr-val">${agoStr}</span></div>
+    <div class="detail-row"><span class="dr-key">RF HASH</span><span class="dr-val">0x${hashStr}</span></div>
+    <div class="detail-row"><span class="dr-key">IDENTITY</span><span class="dr-val ${p.status === 'friendly' ? 'green' : 'red'}">${p.status === 'friendly' ? 'VERIFIED' : 'UNCONFIRMED'}</span></div>
+
+    <div class="rf-display">
+      <div class="rf-title">RF FINGERPRINT SPECTRUM</div>
+      <div class="rf-bars">${rfBars}</div>
+    </div>
+
+    <div class="action-btns">
+      <button class="btn btn-verify" onclick="verifyPlatform('${p.id}')">✓ MARK AS FRIENDLY</button>
+      <button class="btn btn-flag" onclick="flagPlatform('${p.id}')">⚠ FLAG AS THREAT</button>
+      <button class="btn btn-track" onclick="trackPlatform('${p.id}')">◎ TRACK PLATFORM</button>
+    </div>
+  `;
+}
+
+// ── COUNTERS ───────────────────────────────────────────────────────────
+function updateCounters() {
+  document.getElementById('cnt-friendly').textContent = platforms.filter(p=>p.status==='friendly').length;
+  document.getElementById('cnt-unverified').textContent = platforms.filter(p=>p.status==='unverified').length;
+  document.getElementById('cnt-unknown').textContent = platforms.filter(p=>p.status==='unknown').length;
+}
+
+// ── ALERTS ──────────────────────────────────────────────────────────────
+function showAlert(msg) {
+  const el = document.getElementById('alert-bar');
+  el.textContent = `⚠ ${msg}`;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ── LOG ────────────────────────────────────────────────────────────────
+function addLog(msg, cls='') {
+  const now = new Date();
+  const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  logEntries.unshift({ t, msg, cls });
+  if (logEntries.length > 50) logEntries.pop();
+  const log = document.getElementById('activity-log');
+  log.innerHTML = logEntries.map(e =>
+    `<div class="log-entry"><span class="log-time">${e.t}</span><span class="log-msg ${e.cls}">${e.msg}</span></div>`
+  ).join('');
+}
+
+// ── SELECT ─────────────────────────────────────────────────────────────
+function selectPlatform(id) {
+  selectedId = id;
+  const p = platforms.find(x => x.id === id);
+  renderDetail(p);
+  renderList();
+  if (p.status === 'unknown') showAlert(`UNKNOWN PLATFORM DETECTED: ${p.id}`);
+  addLog(`Inspecting ${p.id} [${p.type}]`, 'blue');
+}
+
+// ── ACTIONS ────────────────────────────────────────────────────────────
+function verifyPlatform(id) {
+  const p = platforms.find(x=>x.id===id);
+  if (!p) return;
+  p.status = 'friendly';
+  addLog(`${p.id} → MARKED FRIENDLY`, 'green');
+  render();
+}
+
+function flagPlatform(id) {
+  const p = platforms.find(x=>x.id===id);
+  if (!p) return;
+  p.status = 'unknown';
+  addLog(`${p.id} → FLAGGED AS THREAT`, 'red');
+  showAlert(`THREAT FLAGGED: ${p.id}`);
+  render();
+}
+
+function trackPlatform(id) {
+  const p = platforms.find(x=>x.id===id);
+  if (!p) return;
+  addLog(`Tracking initiated: ${p.id}`, 'blue');
+  showAlert(`TRACKING: ${p.id}`);
+}
+
+// ── MODAL ──────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+function addPlatform() {
+  const id = document.getElementById('m-id').value.trim().toUpperCase() || `DEV-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+  const type = document.getElementById('m-type').value;
+  const status = document.getElementById('m-status').value;
+  const freq = parseInt(document.getElementById('m-freq').value) || 2437;
+  const sig = Array.from({length:12}, () => Math.floor(Math.random()*10)+2);
+  const lat = 20 + Math.random() * 60;
+  const lon = 15 + Math.random() * 70;
+  platforms.push({ id, type, status, freq, rssi: -50 - Math.floor(Math.random()*40), lat, lon, lastSeen: tick, sig });
+  closeModal();
+  addLog(`New platform registered: ${id} [${status.toUpperCase()}]`, status === 'friendly' ? 'green' : status === 'unknown' ? 'red' : 'yellow');
+  if (status === 'unknown') showAlert(`NEW UNKNOWN PLATFORM: ${id}`);
+  render();
+}
+document.getElementById('modal-overlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(); });
+
+// ── SIMULATION ─────────────────────────────────────────────────────────
+function simulate() {
+  tick++;
+  platforms.forEach(p => {
+    // drift positions slightly
+    p.lat += (Math.random()-0.5)*0.4;
+    p.lon += (Math.random()-0.5)*0.4;
+    // update RSSI
+    p.rssi = Math.max(-95, Math.min(-45, p.rssi + (Math.random()-0.5)*3));
+    // update RF spectrum
+    p.sig = p.sig.map(v => Math.max(1, Math.min(12, v + (Math.random()-0.5)*2)));
+    // mark last seen if within range
+    if (Math.random() > 0.7) p.lastSeen = tick;
+  });
+
+  // Random events every ~15s
+  if (tick % 15 === 0) {
+    const events = [
+      () => { const p = platforms.find(x=>x.status==='unverified'); if(p){ addLog(`RF burst from ${p.id} — identity unconfirmed`, 'yellow'); showAlert(`RF BURST: ${p.id} — UNVERIFIED`); } },
+      () => { const p = platforms.find(x=>x.status==='unknown'); if(p){ addLog(`${p.id} signal lost briefly`, 'red'); } },
+      () => { const p = platforms.find(x=>x.status==='friendly'); if(p){ addLog(`${p.id} check-in confirmed`, 'green'); } },
+    ];
+    events[Math.floor(Math.random()*events.length)]();
+  }
+  render();
+}
+
+// ── RENDER ALL ─────────────────────────────────────────────────────────
+function render() {
+  renderList();
+  renderMapNodes();
+  updateCounters();
+  if (selectedId) {
+    const p = platforms.find(x=>x.id===selectedId);
+    renderDetail(p);
+  }
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────
+addLog('System online — RF scanner active', 'green');
+addLog('OP ARCTIC SHIELD initialized', 'blue');
+addLog(`${platforms.filter(p=>p.status==='unknown').length} unknown platforms detected`, 'red');
+platforms.forEach(p => { p.lastSeen = tick; });
+render();
+setInterval(simulate, 1000);
+</script>
+</body>
+</html>
