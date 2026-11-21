@@ -7,25 +7,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #050a0f;
-    --panel: #0a1520;
-    --panel2: #0d1b2a;
-    --border: #1a3a5c;
-    --border2: #0f2840;
+    --bg: #071019;
+    --panel: #0e1d2a;
+    --panel2: #122638;
+    --border: #2b6389;
+    --border2: #1b4562;
     --green: #00ff88;
-    --green-dim: #00a855;
+    --green-dim: #00d672;
     --green-bg: rgba(0,255,136,0.06);
     --yellow: #ffc107;
-    --yellow-dim: #c49000;
+    --yellow-dim: #e3ad00;
     --yellow-bg: rgba(255,193,7,0.06);
     --red: #ff3b5c;
-    --red-dim: #c0002a;
+    --red-dim: #e02d4b;
     --red-bg: rgba(255,59,92,0.06);
     --blue: #00b4ff;
-    --blue-dim: #0078b0;
-    --text: #c8dcea;
-    --text-dim: #4a7090;
-    --text-faint: #1e3a50;
+    --blue-dim: #159bd4;
+    --text: #e7f4ff;
+    --text-dim: #9bc2dc;
+    --text-faint: #668aa3;
     --mono: 'Share Tech Mono', monospace;
     --display: 'Barlow Condensed', sans-serif;
     --body: 'Barlow', sans-serif;
@@ -559,6 +559,172 @@
   .modal-btns { display:flex; gap:10px; margin-top:20px; }
   .modal-btns .btn { flex:1; padding:10px; font-size:12px; }
 
+  /* ─── RF SIGNAL LAB ─── */
+  .signal-lab-modal {
+    width:min(920px, calc(100vw - 32px));
+    max-height:calc(100vh - 32px);
+    overflow-y:auto;
+    padding:0;
+    border-color:var(--blue-dim);
+    box-shadow:0 0 60px rgba(0,180,255,0.14);
+  }
+  .lab-header {
+    padding:18px 22px;
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:14px;
+    background:linear-gradient(90deg, rgba(0,180,255,0.10), transparent 65%);
+  }
+  .lab-header-copy { flex:1; }
+  .lab-title {
+    font-family:var(--display); font-size:22px; font-weight:700;
+    letter-spacing:3px; color:var(--blue);
+  }
+  .lab-subtitle {
+    margin-top:3px; font-family:var(--mono); font-size:9px;
+    color:var(--text-dim); letter-spacing:1px;
+  }
+  .lab-close {
+    width:32px; height:32px; border:1px solid var(--border);
+    background:var(--bg); color:var(--text-dim); cursor:pointer;
+    font-family:var(--mono); font-size:17px;
+  }
+  .lab-close:hover { color:var(--red); border-color:var(--red-dim); }
+  .lab-layout {
+    display:grid; grid-template-columns:290px 1fr;
+    min-height:470px;
+  }
+  .lab-controls {
+    padding:20px; border-right:1px solid var(--border2);
+    background:rgba(5,10,15,0.42);
+  }
+  .lab-output { padding:20px 22px; min-width:0; }
+  .lab-section-label {
+    font-family:var(--mono); font-size:9px; letter-spacing:2px;
+    color:var(--text-dim); margin:0 0 9px;
+  }
+  .lab-slider-row { margin-top:16px; }
+  .lab-slider-head {
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--mono); font-size:10px; color:var(--text-dim);
+  }
+  .lab-slider-value { color:var(--blue); }
+  .lab-range {
+    width:100%; margin-top:8px; accent-color:var(--blue);
+    cursor:pointer;
+  }
+  .lab-presets {
+    display:grid; grid-template-columns:1fr 1fr; gap:6px;
+    margin-top:10px;
+  }
+  .lab-preset {
+    padding:7px 5px; background:rgba(0,180,255,0.06);
+    border:1px solid var(--border); color:var(--text-dim);
+    font-family:var(--mono); font-size:9px; cursor:pointer;
+  }
+  .lab-preset:hover { color:var(--blue); border-color:var(--blue-dim); }
+  .lab-preset.active {
+    color:var(--blue); border-color:var(--blue);
+    background:rgba(0,180,255,0.16);
+    box-shadow:inset 0 0 16px rgba(0,180,255,0.06);
+  }
+  .lab-scenario-copy {
+    min-height:45px; margin-top:8px; padding:8px 10px;
+    border:1px solid var(--border2); background:rgba(0,0,0,0.16);
+    color:var(--text-dim); font-family:var(--mono); font-size:9px;
+    line-height:1.45;
+  }
+  .lab-rescan {
+    width:100%; margin-top:8px; padding:8px;
+    border:1px solid var(--blue-dim); background:rgba(0,180,255,0.08);
+    color:var(--blue); font-family:var(--display); font-weight:600;
+    letter-spacing:2px; cursor:pointer;
+  }
+  .lab-rescan:hover { background:rgba(0,180,255,0.18); }
+  .lab-pipeline {
+    display:grid; grid-template-columns:1fr 20px 1fr 20px 1fr;
+    align-items:center; margin-bottom:12px;
+  }
+  .lab-pipeline-step {
+    min-width:0; padding:8px 9px; border:1px solid var(--border2);
+    background:var(--bg);
+  }
+  .lab-pipeline-kicker {
+    font-family:var(--mono); font-size:8px; color:var(--text-dim);
+    letter-spacing:1px;
+  }
+  .lab-pipeline-status {
+    margin-top:3px; font-family:var(--display); font-weight:700;
+    font-size:13px; letter-spacing:1px;
+  }
+  .lab-pipeline-step.pass { border-color:var(--green-dim); }
+  .lab-pipeline-step.pass .lab-pipeline-status { color:var(--green); }
+  .lab-pipeline-step.fail { border-color:var(--red-dim); }
+  .lab-pipeline-step.fail .lab-pipeline-status { color:var(--red); }
+  .lab-pipeline-arrow {
+    text-align:center; color:var(--text-dim); font-family:var(--mono);
+  }
+  .lab-readouts {
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;
+    margin-bottom:14px;
+  }
+  .lab-readout {
+    padding:9px 10px; border:1px solid var(--border2);
+    background:var(--bg); min-width:0;
+  }
+  .lab-readout-label {
+    font-family:var(--mono); font-size:8px; color:var(--text-dim);
+    letter-spacing:1px;
+  }
+  .lab-readout-value {
+    margin-top:4px; font-family:var(--mono); font-size:13px;
+    color:var(--text); white-space:nowrap;
+  }
+  .lab-plot-wrap {
+    border:1px solid var(--border2); background:var(--bg);
+    padding:10px 12px 8px;
+  }
+  .lab-legend {
+    display:flex; gap:16px; margin-bottom:6px;
+    font-family:var(--mono); font-size:9px; color:var(--text-dim);
+  }
+  .lab-legend-item { display:flex; align-items:center; gap:6px; }
+  .lab-line-key { width:17px; height:2px; background:var(--green); }
+  .lab-line-key.observed { background:var(--blue); }
+  #lab-plot { display:block; width:100%; height:220px; overflow:visible; }
+  .lab-decision {
+    margin-top:14px; display:grid; grid-template-columns:170px 1fr;
+    border:1px solid var(--border); background:rgba(0,0,0,0.18);
+  }
+  .lab-decision-badge {
+    display:flex; align-items:center; justify-content:center;
+    padding:16px; font-family:var(--display); font-size:24px;
+    font-weight:700; letter-spacing:3px;
+  }
+  .lab-decision-badge.matched { color:var(--green); background:var(--green-bg); }
+  .lab-decision-badge.unknown { color:var(--red); background:var(--red-bg); }
+  .lab-decision-copy {
+    padding:12px 15px; border-left:1px solid var(--border2);
+    font-family:var(--mono); font-size:10px; line-height:1.65;
+    color:var(--text-dim);
+  }
+  .lab-score-track {
+    position:relative; height:6px; background:var(--border2); margin-top:8px;
+  }
+  .lab-score-fill { height:100%; background:var(--blue); transition:width .18s; }
+  .lab-threshold-mark {
+    position:absolute; left:82%; top:-4px; width:1px; height:14px;
+    background:var(--yellow);
+  }
+  .lab-threshold-label {
+    position:absolute; left:82%; top:12px; transform:translateX(-50%);
+    font-family:var(--mono); font-size:8px; color:var(--yellow);
+  }
+  .lab-note {
+    margin-top:17px; padding:10px 12px; border-left:2px solid var(--blue-dim);
+    background:rgba(0,180,255,0.04); font-family:var(--mono);
+    font-size:9px; line-height:1.55; color:var(--text-dim);
+  }
+
   /* ─── BOTTOM BAR ─── */
   .bottom-bar {
     grid-column: 1/-1;
@@ -575,7 +741,6 @@
   .bb-dot { width:6px; height:6px; border-radius:50%; }
   .bb-label { color: var(--text-dim); }
   .add-btn {
-    margin-left:auto;
     padding: 5px 14px;
     background: rgba(0,255,136,0.1);
     border: 1px solid var(--green-dim);
@@ -585,6 +750,46 @@
     transition: all 0.15s;
   }
   .add-btn:hover { background: rgba(0,255,136,0.2); }
+  .lab-btn {
+    margin-left:auto;
+    padding:5px 14px;
+    background:rgba(0,180,255,0.10);
+    border:1px solid var(--blue-dim);
+    color:var(--blue);
+    font-family:var(--display); font-size:11px; font-weight:600;
+    letter-spacing:2px; cursor:pointer; text-transform:uppercase;
+    transition:all .15s;
+  }
+  .lab-btn:hover { background:rgba(0,180,255,0.22); }
+
+  @media (max-width: 860px) {
+    body {
+      grid-template-columns:1fr;
+      grid-template-areas:"header" "map";
+    }
+    .panel-left, .panel-right { display:none; }
+    header { gap:10px; padding:0 10px; }
+    header .header-stat, header .header-divider, .op-badge { display:none; }
+    .bottom-bar { left:0; right:0; gap:8px; padding:8px 10px; }
+    .bottom-bar .bb-item { display:none; }
+    .lab-btn { margin-left:0; flex:1; }
+    .add-btn { flex:1; }
+    .lab-layout { grid-template-columns:1fr; }
+    .lab-controls { border-right:0; border-bottom:1px solid var(--border2); }
+    .lab-readouts { grid-template-columns:1fr 1fr; }
+    .lab-decision { grid-template-columns:1fr; }
+    .lab-decision-copy { border-left:0; border-top:1px solid var(--border2); }
+  }
+
+  @media (max-width: 560px) {
+    .signal-lab-modal { width:calc(100vw - 10px); max-height:calc(100vh - 10px); }
+    .lab-header { padding:13px 14px; position:sticky; top:0; z-index:3; background:var(--panel2); }
+    .lab-controls, .lab-output { padding:14px; }
+    .lab-pipeline { grid-template-columns:1fr; gap:5px; }
+    .lab-pipeline-arrow { transform:rotate(90deg); }
+    #lab-plot { height:180px; }
+    .lab-readout-value { font-size:11px; }
+  }
 
 </style>
 </head>
@@ -669,6 +874,7 @@
     <div class="bb-item"><div class="bb-dot" style="background:var(--yellow)"></div><div class="bb-label">UNVERIFIED</div></div>
     <div class="bb-item"><div class="bb-dot" style="background:var(--red)"></div><div class="bb-label">UNKNOWN</div></div>
     <div class="bb-item"><div class="bb-dot" style="background:var(--blue)"></div><div class="bb-label">OPERATOR</div></div>
+    <button class="lab-btn" onclick="openSignalLab()">⌁ RF Signal Lab</button>
     <button class="add-btn" onclick="openModal()">+ Register Platform</button>
   </div>
 </div>
@@ -729,6 +935,112 @@
   </div>
 </div>
 
+<!-- RF SIGNAL LAB MODAL -->
+<div class="modal-overlay" id="signal-lab-overlay">
+  <div class="modal signal-lab-modal">
+    <div class="lab-header">
+      <div class="lab-header-copy">
+        <div class="lab-title">RF SIGNAL LAB</div>
+        <div class="lab-subtitle">TEST HOW CHANNEL CONDITIONS AFFECT PLATFORM IDENTIFICATION</div>
+      </div>
+      <button class="lab-close" onclick="closeSignalLab()" aria-label="Close signal lab">×</button>
+    </div>
+
+    <div class="lab-layout">
+      <div class="lab-controls">
+        <div class="lab-section-label">REFERENCE PLATFORM</div>
+        <select class="modal-select" id="lab-platform" onchange="changeLabPlatform()"></select>
+
+        <div class="lab-slider-row">
+          <div class="lab-slider-head"><span>DISTANCE</span><span class="lab-slider-value" id="lab-distance-value">0.5 km</span></div>
+          <input class="lab-range" id="lab-distance" type="range" min="0.2" max="3" step="0.1" value="0.5" oninput="updateLabFromControls()">
+        </div>
+        <div class="lab-slider-row">
+          <div class="lab-slider-head"><span>NOISE</span><span class="lab-slider-value" id="lab-noise-value">5%</span></div>
+          <input class="lab-range" id="lab-noise" type="range" min="0" max="100" step="1" value="5" oninput="updateLabFromControls()">
+        </div>
+        <div class="lab-slider-row">
+          <div class="lab-slider-head"><span>INTERFERENCE</span><span class="lab-slider-value" id="lab-interference-value">0%</span></div>
+          <input class="lab-range" id="lab-interference" type="range" min="0" max="100" step="1" value="0" oninput="updateLabFromControls()">
+        </div>
+        <div class="lab-slider-row">
+          <div class="lab-slider-head"><span>FREQUENCY OFFSET</span><span class="lab-slider-value" id="lab-frequency-value">+0 MHz</span></div>
+          <input class="lab-range" id="lab-frequency" type="range" min="-12" max="12" step="1" value="0" oninput="updateLabFromControls()">
+        </div>
+        <div class="lab-slider-row">
+          <div class="lab-slider-head"><span>MATCH THRESHOLD</span><span class="lab-slider-value" id="lab-threshold-value">0.82</span></div>
+          <input class="lab-range" id="lab-threshold" type="range" min="0.70" max="0.95" step="0.01" value="0.82" oninput="updateLabFromControls()">
+        </div>
+
+        <div class="lab-section-label" style="margin-top:22px;">SCENARIO PRESETS</div>
+        <div class="lab-presets">
+          <button class="lab-preset" data-preset="clean" onclick="applyLabPreset('clean')">CLEAN SIGNAL</button>
+          <button class="lab-preset" data-preset="edge" onclick="applyLabPreset('edge')">NOISY EDGE</button>
+          <button class="lab-preset" data-preset="interference" onclick="applyLabPreset('interference')">INTERFERENCE</button>
+          <button class="lab-preset" data-preset="channel" onclick="applyLabPreset('channel')">WRONG CHANNEL</button>
+        </div>
+        <div class="lab-scenario-copy" id="lab-scenario-copy">A nearby transmitter with a stable fingerprint should pass both identity checks.</div>
+        <button class="lab-rescan" onclick="runNewLabScan()">↻ RUN NEW SCAN <span id="lab-scan-number">#1</span></button>
+
+        <div class="lab-note">
+          Distance reduces RSSI and raises effective measurement noise. Cosine similarity is scale-invariant, so signal shape—not raw amplitude—drives the fingerprint score.
+        </div>
+      </div>
+
+      <div class="lab-output">
+        <div class="lab-pipeline" aria-label="Two-step identity decision">
+          <div class="lab-pipeline-step pass" id="lab-step-frequency">
+            <div class="lab-pipeline-kicker">STEP 1 · CHANNEL</div>
+            <div class="lab-pipeline-status">FREQUENCY PASS</div>
+          </div>
+          <div class="lab-pipeline-arrow">→</div>
+          <div class="lab-pipeline-step pass" id="lab-step-shape">
+            <div class="lab-pipeline-kicker">STEP 2 · IDENTITY</div>
+            <div class="lab-pipeline-status">SHAPE PASS</div>
+          </div>
+          <div class="lab-pipeline-arrow">→</div>
+          <div class="lab-pipeline-step pass" id="lab-step-result">
+            <div class="lab-pipeline-kicker">FINAL DECISION</div>
+            <div class="lab-pipeline-status">MATCHED</div>
+          </div>
+        </div>
+
+        <div class="lab-readouts">
+          <div class="lab-readout"><div class="lab-readout-label">MEASURED RSSI</div><div class="lab-readout-value" id="lab-rssi">−62.0 dBm</div></div>
+          <div class="lab-readout"><div class="lab-readout-label">OBSERVED FREQ</div><div class="lab-readout-value" id="lab-observed-frequency">2437 MHz</div></div>
+          <div class="lab-readout"><div class="lab-readout-label">FREQ GATE ±5</div><div class="lab-readout-value" id="lab-frequency-gate">PASS</div></div>
+          <div class="lab-readout"><div class="lab-readout-label">COSINE SCORE</div><div class="lab-readout-value" id="lab-score">0.999</div></div>
+        </div>
+
+        <div class="lab-plot-wrap">
+          <div class="lab-legend">
+            <div class="lab-legend-item"><span class="lab-line-key"></span>REFERENCE</div>
+            <div class="lab-legend-item"><span class="lab-line-key observed"></span>OBSERVED</div>
+          </div>
+          <svg id="lab-plot" viewBox="0 0 560 220" role="img" aria-label="Reference and observed RF fingerprints">
+            <g id="lab-grid"></g>
+            <polyline id="lab-reference-line" fill="none" stroke="#00ff88" stroke-width="2.5" points=""></polyline>
+            <polyline id="lab-observed-line" fill="none" stroke="#00b4ff" stroke-width="2.5" points=""></polyline>
+            <g id="lab-observed-points"></g>
+          </svg>
+        </div>
+
+        <div class="lab-decision">
+          <div class="lab-decision-badge matched" id="lab-decision">MATCHED</div>
+          <div class="lab-decision-copy">
+            <div id="lab-explanation">Frequency is within tolerance and the RF shape exceeds the matching threshold.</div>
+            <div class="lab-score-track">
+              <div class="lab-score-fill" id="lab-score-fill" style="width:99.9%"></div>
+              <div class="lab-threshold-mark" id="lab-threshold-mark"></div>
+              <div class="lab-threshold-label" id="lab-threshold-label">0.82 THRESHOLD</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── DATA ──────────────────────────────────────────────────────────────
 const TYPES = { 'Drone / UAV':'🚁', 'Ground Robot':'🤖', 'Sensor Node':'📡', 'Vessel':'⛵', 'Unknown Device':'❓' };
@@ -745,6 +1057,22 @@ let platforms = [
 let selectedId = null;
 let logEntries = [];
 let tick = 0;
+
+const LAB_THRESHOLD = 0.82;
+const LAB_NOISE_PATTERN = [-0.72, 0.35, -0.44, 0.80, -0.15, 0.56, -0.63, 0.22, -0.91, 0.41, -0.33, 0.67];
+const LAB_INTERFERENCE_PATTERN = [0.3, 12, 0.3, 12, 0.3, 12, 0.3, 12, 0.3, 12, 0.3, 12];
+let labState = {
+  platformId: null,
+  baseline: [],
+  baseRssi: -62,
+  distance: 0.5,
+  noise: 5,
+  interference: 0,
+  frequencyOffset: 0,
+  threshold: LAB_THRESHOLD,
+  scanSeed: 0,
+  activePreset: 'clean',
+};
 
 // ── CLOCK ─────────────────────────────────────────────────────────────
 function updateClock() {
@@ -954,6 +1282,215 @@ function addPlatform() {
 }
 document.getElementById('modal-overlay').addEventListener('click', e => { if(e.target === e.currentTarget) closeModal(); });
 
+// ── RF SIGNAL LAB ─────────────────────────────────────────────────────
+function openSignalLab() {
+  const selector = document.getElementById('lab-platform');
+  selector.innerHTML = platforms.map(p => `<option value="${p.id}">${p.id} · ${p.freq} MHz</option>`).join('');
+  labState.platformId = platforms.some(p => p.id === selectedId) ? selectedId : platforms[0].id;
+  selector.value = labState.platformId;
+  loadLabReference();
+  document.getElementById('signal-lab-overlay').classList.add('show');
+  if (location.hash !== '#signal-lab') history.replaceState(null, '', `${location.pathname}${location.search}#signal-lab`);
+  renderSignalLab();
+  addLog(`RF Signal Lab opened: ${labState.platformId}`, 'blue');
+}
+
+function closeSignalLab() {
+  document.getElementById('signal-lab-overlay').classList.remove('show');
+  if (location.hash === '#signal-lab') history.replaceState(null, '', `${location.pathname}${location.search}`);
+}
+
+function loadLabReference() {
+  const p = platforms.find(x => x.id === labState.platformId) || platforms[0];
+  labState.platformId = p.id;
+  // Freeze a copy so the background simulation cannot move the lab reference.
+  labState.baseline = p.sig.map(Number);
+  labState.baseRssi = Number(p.rssi);
+}
+
+function changeLabPlatform() {
+  labState.platformId = document.getElementById('lab-platform').value;
+  labState.scanSeed = 0;
+  loadLabReference();
+  renderSignalLab();
+}
+
+function updateLabFromControls() {
+  labState.distance = Number(document.getElementById('lab-distance').value);
+  labState.noise = Number(document.getElementById('lab-noise').value);
+  labState.interference = Number(document.getElementById('lab-interference').value);
+  labState.frequencyOffset = Number(document.getElementById('lab-frequency').value);
+  labState.threshold = Number(document.getElementById('lab-threshold').value);
+  labState.activePreset = 'custom';
+  renderSignalLab();
+}
+
+function setLabControls() {
+  document.getElementById('lab-distance').value = labState.distance;
+  document.getElementById('lab-noise').value = labState.noise;
+  document.getElementById('lab-interference').value = labState.interference;
+  document.getElementById('lab-frequency').value = labState.frequencyOffset;
+  document.getElementById('lab-threshold').value = labState.threshold;
+}
+
+function applyLabPreset(name) {
+  const presets = {
+    clean:        { distance:0.5, noise:5,  interference:0,  frequencyOffset:0 },
+    edge:         { distance:2.6, noise:70, interference:35, frequencyOffset:2 },
+    interference: { distance:1.2, noise:25, interference:90, frequencyOffset:1 },
+    channel:      { distance:0.5, noise:5,  interference:0,  frequencyOffset:9 },
+  };
+  Object.assign(labState, presets[name] || presets.clean);
+  labState.threshold = LAB_THRESHOLD;
+  labState.activePreset = name;
+  labState.scanSeed = 0;
+  setLabControls();
+  renderSignalLab();
+}
+
+function runNewLabScan() {
+  labState.scanSeed = (labState.scanSeed + 1) % LAB_NOISE_PATTERN.length;
+  labState.activePreset = 'custom';
+  renderSignalLab();
+  addLog(`RF lab rescan #${labState.scanSeed + 1}: ${labState.platformId}`, 'blue');
+}
+
+function cosineSimilarity(a, b) {
+  const dot = a.reduce((sum, value, i) => sum + value * b[i], 0);
+  const normA = Math.sqrt(a.reduce((sum, value) => sum + value * value, 0));
+  const normB = Math.sqrt(b.reduce((sum, value) => sum + value * value, 0));
+  return normA && normB ? dot / (normA * normB) : 0;
+}
+
+function labMeasurement() {
+  const distanceRatio = (labState.distance - 0.2) / 2.8;
+  const interferenceBlend = (labState.interference / 100) * 0.92;
+  const noiseAmplitude = (labState.noise / 100) * 8 + distanceRatio * 3.2;
+  const observed = labState.baseline.map((value, i) => Math.max(
+    0.25,
+    value * (1 - interferenceBlend)
+      + LAB_INTERFERENCE_PATTERN[i] * interferenceBlend
+      + LAB_NOISE_PATTERN[(i + labState.scanSeed * 3) % LAB_NOISE_PATTERN.length]
+        * (labState.scanSeed % 2 ? -1 : 1)
+        * noiseAmplitude
+  ));
+  const score = cosineSimilarity(labState.baseline, observed);
+  const reference = platforms.find(p => p.id === labState.platformId) || platforms[0];
+  const observedFrequency = reference.freq + labState.frequencyOffset;
+  const frequencyPass = Math.abs(labState.frequencyOffset) <= 5;
+  const shapePass = score >= labState.threshold;
+  const matched = frequencyPass && shapePass;
+  const pathLoss = 20 * Math.log10(Math.max(0.2, labState.distance) / 0.5);
+  const rssi = Math.max(-110, labState.baseRssi - pathLoss - labState.noise * 0.035 - labState.interference * 0.02);
+  return { observed, score, reference, observedFrequency, frequencyPass, shapePass, matched, rssi };
+}
+
+function signalPoints(values) {
+  const left = 22, right = 538, top = 16, bottom = 196, maxValue = 14;
+  return values.map((value, i) => {
+    const x = left + i * (right - left) / (values.length - 1);
+    const y = bottom - Math.min(maxValue, value) / maxValue * (bottom - top);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+}
+
+function renderLabGrid() {
+  const grid = document.getElementById('lab-grid');
+  if (grid.dataset.ready) return;
+  let markup = '';
+  [16, 61, 106, 151, 196].forEach((y, i) => {
+    markup += `<line x1="22" y1="${y}" x2="538" y2="${y}" stroke="var(--border2)" stroke-width="1" />`;
+    markup += `<text x="4" y="${y + 3}" fill="var(--text-dim)" font-size="8" font-family="monospace">${14 - i * 3.5}</text>`;
+  });
+  for (let i = 0; i < 12; i++) {
+    const x = 22 + i * 516 / 11;
+    markup += `<line x1="${x}" y1="16" x2="${x}" y2="196" stroke="var(--border2)" stroke-width="1" opacity="0.55" />`;
+    markup += `<text x="${x}" y="213" text-anchor="middle" fill="var(--text-dim)" font-size="8" font-family="monospace">${i + 1}</text>`;
+  }
+  grid.innerHTML = markup;
+  grid.dataset.ready = 'true';
+}
+
+function renderSignalLab() {
+  if (!labState.baseline.length) return;
+  const measurement = labMeasurement();
+  renderLabGrid();
+
+  document.getElementById('lab-distance-value').textContent = `${labState.distance.toFixed(1)} km`;
+  document.getElementById('lab-noise-value').textContent = `${labState.noise}%`;
+  document.getElementById('lab-interference-value').textContent = `${labState.interference}%`;
+  document.getElementById('lab-frequency-value').textContent = `${labState.frequencyOffset >= 0 ? '+' : ''}${labState.frequencyOffset} MHz`;
+  document.getElementById('lab-threshold-value').textContent = labState.threshold.toFixed(2);
+  document.getElementById('lab-scan-number').textContent = `#${labState.scanSeed + 1}`;
+  document.getElementById('lab-rssi').textContent = `${measurement.rssi.toFixed(1)} dBm`;
+  document.getElementById('lab-observed-frequency').textContent = `${measurement.observedFrequency} MHz`;
+
+  document.querySelectorAll('.lab-preset').forEach(button => {
+    button.classList.toggle('active', button.dataset.preset === labState.activePreset);
+  });
+  const scenarioDescriptions = {
+    clean: 'A nearby transmitter with a stable fingerprint should pass both identity checks.',
+    edge: 'A distant, noisy signal tests whether the fingerprint remains reliable near the decision boundary.',
+    interference: 'An overlapping emitter distorts the spectrum shape, so frequency may pass while identity fails.',
+    channel: 'The fingerprint shape still matches, but a channel offset beyond ±5 MHz blocks the identity match.',
+    custom: 'Custom test: adjust the controls or run another scan to explore decision stability.',
+  };
+  document.getElementById('lab-scenario-copy').textContent = scenarioDescriptions[labState.activePreset] || scenarioDescriptions.custom;
+
+  const gate = document.getElementById('lab-frequency-gate');
+  gate.textContent = measurement.frequencyPass ? 'PASS' : 'FAIL';
+  gate.style.color = measurement.frequencyPass ? 'var(--green)' : 'var(--red)';
+  const score = document.getElementById('lab-score');
+  score.textContent = measurement.score.toFixed(3);
+  score.style.color = measurement.shapePass ? 'var(--green)' : 'var(--red)';
+
+  const setPipelineStep = (id, passed, label) => {
+    const step = document.getElementById(id);
+    step.className = `lab-pipeline-step ${passed ? 'pass' : 'fail'}`;
+    step.querySelector('.lab-pipeline-status').textContent = label;
+  };
+  setPipelineStep('lab-step-frequency', measurement.frequencyPass, measurement.frequencyPass ? 'FREQUENCY PASS' : 'FREQUENCY FAIL');
+  setPipelineStep('lab-step-shape', measurement.shapePass, measurement.shapePass ? 'SHAPE PASS' : 'SHAPE FAIL');
+  setPipelineStep('lab-step-result', measurement.matched, measurement.matched ? 'MATCHED' : 'UNKNOWN');
+
+  document.getElementById('lab-reference-line').setAttribute('points', signalPoints(labState.baseline));
+  document.getElementById('lab-observed-line').setAttribute('points', signalPoints(measurement.observed));
+  const pointPairs = signalPoints(measurement.observed).split(' ');
+  document.getElementById('lab-observed-points').innerHTML = pointPairs.map(pair => {
+    const [cx, cy] = pair.split(',');
+    return `<circle cx="${cx}" cy="${cy}" r="3" fill="#050a0f" stroke="#00b4ff" stroke-width="1.5" />`;
+  }).join('');
+
+  const decision = document.getElementById('lab-decision');
+  decision.textContent = measurement.matched ? 'MATCHED' : 'UNKNOWN';
+  decision.className = `lab-decision-badge ${measurement.matched ? 'matched' : 'unknown'}`;
+  document.getElementById('lab-score-fill').style.width = `${Math.min(100, measurement.score * 100)}%`;
+  document.getElementById('lab-score-fill').style.background = measurement.matched ? 'var(--green)' : 'var(--red)';
+  document.getElementById('lab-threshold-mark').style.left = `${labState.threshold * 100}%`;
+  document.getElementById('lab-threshold-label').style.left = `${labState.threshold * 100}%`;
+  document.getElementById('lab-threshold-label').textContent = `${labState.threshold.toFixed(2)} THRESHOLD`;
+
+  let explanation;
+  if (!measurement.frequencyPass) {
+    explanation = `Rejected by the frequency gate: ${Math.abs(labState.frequencyOffset)} MHz offset exceeds the ±5 MHz tolerance, even though shape similarity is ${measurement.score.toFixed(3)}.`;
+  } else if (!measurement.shapePass) {
+    explanation = `Frequency passed, but RF shape similarity ${measurement.score.toFixed(3)} is below the ${labState.threshold.toFixed(2)} identity threshold.`;
+  } else {
+    explanation = `Frequency passed and RF shape similarity ${measurement.score.toFixed(3)} exceeds the ${labState.threshold.toFixed(2)} identity threshold.`;
+  }
+  document.getElementById('lab-explanation').textContent = explanation;
+}
+
+document.getElementById('signal-lab-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeSignalLab();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal();
+    closeSignalLab();
+  }
+});
+
 // ── SIMULATION ─────────────────────────────────────────────────────────
 function simulate() {
   tick++;
@@ -1000,6 +1537,7 @@ addLog(`${unknownCount} unknown platform${unknownCount === 1 ? '' : 's'} detecte
 platforms.forEach(p => { p.lastSeen = tick; });
 render();
 setInterval(simulate, 1000);
+if (location.hash === '#signal-lab') setTimeout(openSignalLab, 0);
 </script>
 </body>
 </html>
